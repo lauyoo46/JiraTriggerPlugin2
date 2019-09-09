@@ -2,6 +2,8 @@ package com.ceilfors.jenkins.plugins.jiratrigger
 
 import com.atlassian.jira.rest.client.api.AddressableEntity
 import com.atlassian.jira.rest.client.api.domain.Issue
+import com.atlassian.jira.rest.client.api.domain.Project
+import com.atlassian.jira.rest.client.api.domain.Version
 import com.ceilfors.jenkins.plugins.jiratrigger.jira.JiraClient
 import com.ceilfors.jenkins.plugins.jiratrigger.parameter.DefaultParametersAction
 import com.ceilfors.jenkins.plugins.jiratrigger.parameter.ParameterMapping
@@ -59,6 +61,22 @@ abstract class JiraTrigger<T> extends Trigger<Job> {
         ParameterizedJobMixIn.scheduleBuild2(job, -1, *actions) != null
     }
 
+    final boolean run(Project project) {
+        log.fine("[${job.fullName}] - Processing project '${project.key}'")
+
+        if(!filter(project)) {
+            return false
+        }
+
+        List<Action> actions = []
+        actions << new DefaultParametersAction(this.job)
+        actions << new JiraProjectEnvironmentContributingAction(project)
+        actions << new CauseAction(getCause(project))
+        log.fine("[${job.fullName}] - Scheduling build for project '${project.key}'")
+
+        ParameterizedJobMixIn.scheduleBuild2(job, -1, *actions) != null
+    }
+
     @Override
     void start(Job project, boolean newInstance) {
         super.start(project, newInstance)
@@ -77,6 +95,8 @@ abstract class JiraTrigger<T> extends Trigger<Job> {
 
     abstract boolean filter(Issue issue, T t)
 
+    abstract boolean filter(Project project)
+
     private String getId(T t) {
         t instanceof AddressableEntity ? (t as AddressableEntity).self : t.toString()
     }
@@ -86,6 +106,8 @@ abstract class JiraTrigger<T> extends Trigger<Job> {
     }
 
     abstract Cause getCause(Issue issue, T t)
+
+    abstract Cause getCause(Project project)
 
     @SuppressWarnings('UnnecessaryTransientModifier')
     @Log

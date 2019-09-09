@@ -3,14 +3,18 @@ package com.ceilfors.jenkins.plugins.jiratrigger
 import com.atlassian.jira.rest.client.api.domain.ChangelogGroup
 import com.atlassian.jira.rest.client.api.domain.Comment
 import com.atlassian.jira.rest.client.api.domain.Issue
+import com.atlassian.jira.rest.client.api.domain.Project
+import com.atlassian.jira.rest.client.api.domain.Version
 import com.ceilfors.jenkins.plugins.jiratrigger.webhook.JiraWebhookListener
 import com.ceilfors.jenkins.plugins.jiratrigger.webhook.WebhookChangelogEvent
 import com.ceilfors.jenkins.plugins.jiratrigger.webhook.WebhookCommentEvent
+import com.ceilfors.jenkins.plugins.jiratrigger.webhook.WebhookReleaseEvent
 import com.google.inject.Singleton
 import groovy.util.logging.Log
 import hudson.model.AbstractProject
+import hudson.model.Job
 import jenkins.model.Jenkins
-
+import jenkins.model.ParameterizedJobMixIn
 import javax.inject.Inject
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -52,6 +56,12 @@ class JiraTriggerExecutor implements JiraWebhookListener {
         fireListeners(scheduledProjects, changelogEvent.issue)
     }
 
+    @Override
+    void releaseCreated(WebhookReleaseEvent releaseEvent) {
+        scheduleBuilds(releaseEvent.project)
+        //todo: do we need fireListeners?
+    }
+
     private void fireListeners(List<AbstractProject> scheduledProjects, Issue issue) {
         if (scheduledProjects) {
             jiraTriggerListeners*.buildScheduled(issue, scheduledProjects)
@@ -66,6 +76,23 @@ class JiraTriggerExecutor implements JiraWebhookListener {
 
     List<AbstractProject> scheduleBuilds(Issue issue, ChangelogGroup changelogGroup) {
         scheduleBuildsInternal(JiraChangelogTrigger, issue, changelogGroup)
+    }
+
+    List<AbstractProject> scheduleBuilds(Project project) {
+        scheduleBuildsInternalProject(JiraReleaseTrigger, project)
+    }
+
+    List<AbstractProject> scheduleBuildsInternalProject(
+            Class<? extends JiraTrigger> triggerClass, Project project) {
+        List<AbstractProject> scheduledProjects = []
+        List<? extends JiraTrigger> triggers = getTriggers(triggerClass)
+        for(trigger in triggers) {
+            boolean scheduled = trigger.run(project)
+            if(scheduled) {
+                scheduledProjects << trigger.job
+            }
+        }
+        scheduledProjects
     }
 
     /**

@@ -3,6 +3,8 @@ package com.ceilfors.jenkins.plugins.jiratrigger.integration
 import com.ceilfors.jenkins.plugins.jiratrigger.JiraChangelogTrigger
 import com.ceilfors.jenkins.plugins.jiratrigger.JiraCommentReplier
 import com.ceilfors.jenkins.plugins.jiratrigger.JiraCommentTrigger
+import com.ceilfors.jenkins.plugins.jiratrigger.JiraReleaseReplier
+import com.ceilfors.jenkins.plugins.jiratrigger.JiraReleaseTrigger
 import com.ceilfors.jenkins.plugins.jiratrigger.JiraTriggerExecutor
 import com.ceilfors.jenkins.plugins.jiratrigger.JiraTriggerGlobalConfiguration
 import com.ceilfors.jenkins.plugins.jiratrigger.jira.JiraClient
@@ -112,8 +114,11 @@ class JenkinsRunner extends JenkinsRule {
         // KLUDGE: Could not find a better way to override Guice injection
         jenkins.getDescriptorByType(JiraChangelogTrigger.JiraChangelogTriggerDescriptor).jiraClient = jiraClient
         jenkins.getDescriptorByType(JiraCommentTrigger.JiraCommentTriggerDescriptor).jiraClient = jiraClient
+        jenkins.getDescriptorByType(JiraReleaseTrigger.JiraReleaseTriggerDescriptor).jiraClient = jiraClient
         jenkins.injector.getInstance(JiraTriggerExecutor).jiraTriggerListeners
                 .grep(JiraCommentReplier)[0].jiraClient = jiraClient
+        jenkins.injector.getInstance(JiraTriggerExecutor).jiraTriggerListeners
+                .grep(JiraReleaseReplier)[0].jiraClient = jiraClient
     }
 
     void setQuietPeriod(int quietPeriod) {
