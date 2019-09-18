@@ -35,67 +35,67 @@ abstract class JiraTrigger<T> extends Trigger<Job> {
     @DataBoundSetter
     List<ParameterMapping> parameterMappings = []
 
-    final boolean run(Issue issue, T t) {
-        log.fine("[${job.fullName}] - Processing ${issue.key} - ${getId(t)}")
-
-        if (!filter(issue, t)) {
-            return false
-        }
-        if (jqlFilter) {
-            if (!jiraTriggerDescriptor.jiraClient.validateIssueKey(issue.key, jqlFilter)) {
-                log.fine("[${job.fullName}] - Not scheduling build: The issue ${issue.key} doesn't " +
-                        "match with the jqlFilter [$jqlFilter]")
-                return false
-            }
-        }
-
-        List<Action> actions = []
-        if (parameterMappings) {
-            actions << new ParameterMappingAction(issue, parameterMappings)
-        }
-        actions << new DefaultParametersAction(this.job)
-        actions << new JiraIssueEnvironmentContributingAction(issue)
-        actions << new CauseAction(getCause(issue, t))
-        log.fine("[${job.fullName}] - Scheduling build for ${issue.key} - ${getId(t)}")
-
-        ParameterizedJobMixIn.scheduleBuild2(job, -1, *actions) != null
-    }
-
-    final boolean run(Project project, T t) {
-        log.fine("[${job.fullName}] - Processing project '${project.key}'")
-
-        if(!filter(project, t)) {
-            return false
-        }
-
-        List<Action> actions = []
-        def extraParameters = getExtraParameters(project, t)
-        List<ParameterDefinition> newParams = []
-        List<ParameterDefinition> newExtraParameteres = []
-        for(int i=0; i<this.job.transientActions[1].parameterDefinitions.size(); ++i) {
-            ParameterDefinition jenkinsParam = (ParameterDefinition) this.job.transientActions[1].parameterDefinitions[i]
-            newExtraParameteres = extraParameters
-            for(int j=0; j<extraParameters.size(); ++j) {
-                ParameterDefinition extraParam = (ParameterDefinition) extraParameters[j]
-                if(jenkinsParam.name == extraParam.name) {
-                    jenkinsParam = extraParam
-                    newExtraParameteres.remove(extraParam)
-                }
-            }
-            extraParameters = newExtraParameteres
-            newParams.add(jenkinsParam)
-        }
-        this.job.transientActions[1].parameterDefinitions.clear()
-        this.job.transientActions[1].parameterDefinitions.addAll(newParams)
-        this.job.transientActions[1].parameterDefinitions.addAll(newExtraParameteres)
-
-        actions << new DefaultParametersAction(this.job)
-        actions << new JiraProjectEnvironmentContributingAction(project)
-        actions << new CauseAction(getCause(project))
-        log.fine("[${job.fullName}] - Scheduling build for project '${project.key}'")
-
-        ParameterizedJobMixIn.scheduleBuild2(job, -1, *actions) != null
-    }
+//    final boolean run(Issue issue, T t) {
+//        log.fine("[${job.fullName}] - Processing ${issue.key} - ${getId(t)}")
+//
+//        if (!filter(issue, t)) {
+//            return false
+//        }
+//        if (jqlFilter) {
+//            if (!jiraTriggerDescriptor.jiraClient.validateIssueKey(issue.key, jqlFilter)) {
+//                log.fine("[${job.fullName}] - Not scheduling build: The issue ${issue.key} doesn't " +
+//                        "match with the jqlFilter [$jqlFilter]")
+//                return false
+//            }
+//        }
+//
+//        List<Action> actions = []
+//        if (parameterMappings) {
+//            actions << new ParameterMappingAction(issue, parameterMappings)
+//        }
+//        actions << new DefaultParametersAction(this.job)
+//        actions << new JiraIssueEnvironmentContributingAction(issue)
+//        actions << new CauseAction(getCause(issue, t))
+//        log.fine("[${job.fullName}] - Scheduling build for ${issue.key} - ${getId(t)}")
+//
+//        ParameterizedJobMixIn.scheduleBuild2(job, -1, *actions) != null
+//    }
+//
+//    final boolean run(Project project, T t) {
+//        log.fine("[${job.fullName}] - Processing project '${project.key}'")
+//
+//        if(!filter(project, t)) {
+//            return false
+//        }
+//
+//        List<Action> actions = []
+//        def extraParameters = getExtraParameters(project, t)
+//        List<ParameterDefinition> newParams = []
+//        List<ParameterDefinition> newExtraParameteres = []
+//        for(int i=0; i<this.job.transientActions[1].parameterDefinitions.size(); ++i) {
+//            ParameterDefinition jenkinsParam = (ParameterDefinition) this.job.transientActions[1].parameterDefinitions[i]
+//            newExtraParameteres = extraParameters
+//            for(int j=0; j<extraParameters.size(); ++j) {
+//                ParameterDefinition extraParam = (ParameterDefinition) extraParameters[j]
+//                if(jenkinsParam.name == extraParam.name) {
+//                    jenkinsParam = extraParam
+//                    newExtraParameteres.remove(extraParam)
+//                }
+//            }
+//            extraParameters = newExtraParameteres
+//            newParams.add(jenkinsParam)
+//        }
+//        this.job.transientActions[1].parameterDefinitions.clear()
+//        this.job.transientActions[1].parameterDefinitions.addAll(newParams)
+//        this.job.transientActions[1].parameterDefinitions.addAll(newExtraParameteres)
+//
+//        actions << new DefaultParametersAction(this.job)
+//        actions << new JiraProjectEnvironmentContributingAction(project)
+//        actions << new CauseAction(getCause(project))
+//        log.fine("[${job.fullName}] - Scheduling build for project '${project.key}'")
+//
+//        ParameterizedJobMixIn.scheduleBuild2(job, -1, *actions) != null
+//    }
 
     @Override
     void start(Job project, boolean newInstance) {
@@ -113,23 +113,15 @@ abstract class JiraTrigger<T> extends Trigger<Job> {
         super.job
     }
 
-    abstract List<ParameterDefinition> getExtraParameters(Project project, T t)
 
-    abstract boolean filter(Issue issue, T t)
 
-    abstract boolean filter(Project project, T t)
-
-    private String getId(T t) {
+    private String getId(T t) { //todo: public?
         t instanceof AddressableEntity ? (t as AddressableEntity).self : t.toString()
     }
 
     JiraTriggerDescriptor getJiraTriggerDescriptor() {
         super.descriptor as JiraTriggerDescriptor
     }
-
-    abstract Cause getCause(Issue issue, T t)
-
-    abstract Cause getCause(Project project)
 
     @SuppressWarnings('UnnecessaryTransientModifier')
     @Log
