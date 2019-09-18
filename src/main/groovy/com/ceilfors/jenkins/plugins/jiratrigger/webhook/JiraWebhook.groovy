@@ -82,7 +82,6 @@ class JiraWebhook implements UnprotectedRootAction {
             releaseEvent.userKey = rawWebhookEvent.userKey
             jiraWebhookListener.releaseCreated(releaseEvent)
             validEvent = true
-
         }
         if (!validEvent) {
             log.warning('Received Webhook callback with an invalid event type or a body without comment/changelog/version. ' +

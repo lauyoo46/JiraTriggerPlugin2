@@ -6,6 +6,8 @@ import com.atlassian.jira.rest.client.api.domain.Project
 import groovy.util.logging.Log
 import hudson.Extension
 import hudson.model.Cause
+import hudson.model.ParameterDefinition
+import hudson.model.ParameterValue
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
@@ -28,6 +30,11 @@ class JiraCommentTrigger extends JiraTrigger<Comment> {
     }
 
     @Override
+    List<ParameterDefinition> getExtraParameters(Project project, Comment comment) {
+        return null
+    }
+
+    @Override
     boolean filter(Issue issue, Comment comment) {
         String commentBody = comment.body
         if (commentPattern) {
@@ -41,7 +48,7 @@ class JiraCommentTrigger extends JiraTrigger<Comment> {
     }
 
     @Override
-    boolean filter(Project project) {
+    boolean filter(Project project, Comment comment) {
         return false
     }
 

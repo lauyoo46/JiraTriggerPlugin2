@@ -17,19 +17,12 @@ class WebhookReleaseEventJsonParser implements JsonObjectParser<WebhookReleaseEv
     WebhookReleaseEvent parse(JSONObject webhookEvent) throws JSONException {
 
         JiraTriggerGlobalConfiguration jtgc = Jenkins.instance.getDescriptor(JiraTriggerGlobalConfiguration) as JiraTriggerGlobalConfiguration
-        String authString = jtgc.getEncodedAuthentication()
-        String projectId = webhookEvent.getJSONObject('version').getString('projectId')
-        def addr = "http://10.106.0.77:8081/rest/api/2/project/"
-        addr += projectId
-        def conn = addr.toURL().openConnection() as HttpURLConnection
-        conn.setRequestProperty("Authorization", "Basic ${authString}")
-        conn.requestMethod = 'GET'
-        JSONObject jsonResponse = new JSONObject(conn.content.text)
+        JSONObject project = new JSONObject(jtgc.getJsonResponse(webhookEvent).content.text)
 
         new WebhookReleaseEvent(
                 webhookEvent.getLong('timestamp'),
                 webhookEvent.getString('webhookEvent'),
-                projectJsonParser.parse(jsonResponse),
+                projectJsonParser.parse(project),
                 new VersionJsonParser().parse(webhookEvent.getJSONObject('version'))
         )
     }

@@ -55,4 +55,14 @@ class JiraTriggerGlobalConfiguration extends GlobalConfiguration {
     String getEncodedAuthentication() {
         return (jiraUsername + ":" + jiraPassword).getBytes().encodeBase64().toString()
     }
+
+    HttpURLConnection getJsonResponse(org.codehaus.jettison.json.JSONObject webhookEvent) {
+        String authString = getEncodedAuthentication()
+        String projectId = webhookEvent.getJSONObject('version').getString('projectId')
+        def addr = "http://10.106.0.77:8081/rest/api/2/project/" + projectId
+        def conn = addr.toURL().openConnection() as HttpURLConnection
+        conn.setRequestProperty("Authorization", "Basic ${authString}")
+        conn.requestMethod = 'GET'
+        return conn
+    }
 }

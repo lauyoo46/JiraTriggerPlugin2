@@ -7,6 +7,7 @@ import com.ceilfors.jenkins.plugins.jiratrigger.changelog.ChangelogMatcher
 import groovy.util.logging.Log
 import hudson.Extension
 import hudson.model.Cause
+import hudson.model.ParameterDefinition
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
@@ -27,6 +28,11 @@ class JiraChangelogTrigger extends JiraTrigger<ChangelogGroup> {
     }
 
     @Override
+    List<ParameterDefinition> getExtraParameters(Project project, ChangelogGroup changelogGroup) {
+        return null
+    }
+
+    @Override
     boolean filter(Issue issue, ChangelogGroup changelogGroup) {
         for (changelogMatcher in changelogMatchers) {
             if (!changelogMatcher.matches(changelogGroup)) {
@@ -39,7 +45,7 @@ class JiraChangelogTrigger extends JiraTrigger<ChangelogGroup> {
     }
 
     @Override
-    boolean filter(Project project) {
+    boolean filter(Project project, ChangelogGroup changelogGroup) {
         return false
     }
 

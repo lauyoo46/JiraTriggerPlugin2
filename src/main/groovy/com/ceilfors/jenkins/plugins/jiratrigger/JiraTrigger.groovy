@@ -3,7 +3,6 @@ package com.ceilfors.jenkins.plugins.jiratrigger
 import com.atlassian.jira.rest.client.api.AddressableEntity
 import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.domain.Project
-import com.atlassian.jira.rest.client.api.domain.Version
 import com.ceilfors.jenkins.plugins.jiratrigger.jira.JiraClient
 import com.ceilfors.jenkins.plugins.jiratrigger.parameter.DefaultParametersAction
 import com.ceilfors.jenkins.plugins.jiratrigger.parameter.ParameterMapping
@@ -13,6 +12,7 @@ import hudson.model.Cause
 import hudson.model.CauseAction
 import hudson.model.Item
 import hudson.model.Job
+import hudson.model.ParameterDefinition
 import hudson.triggers.Trigger
 import hudson.triggers.TriggerDescriptor
 import jenkins.model.Jenkins
@@ -61,14 +61,34 @@ abstract class JiraTrigger<T> extends Trigger<Job> {
         ParameterizedJobMixIn.scheduleBuild2(job, -1, *actions) != null
     }
 
-    final boolean run(Project project) {
+    final boolean run(Project project, T t) {
         log.fine("[${job.fullName}] - Processing project '${project.key}'")
 
-        if(!filter(project)) {
+        if(!filter(project, t)) {
             return false
         }
 
         List<Action> actions = []
+        def extraParameters = getExtraParameters(project, t)
+        List<ParameterDefinition> newParams = []
+        List<ParameterDefinition> newExtraParameteres = []
+        for(int i=0; i<this.job.transientActions[1].parameterDefinitions.size(); ++i) {
+            ParameterDefinition jenkinsParam = (ParameterDefinition) this.job.transientActions[1].parameterDefinitions[i]
+            newExtraParameteres = extraParameters
+            for(int j=0; j<extraParameters.size(); ++j) {
+                ParameterDefinition extraParam = (ParameterDefinition) extraParameters[j]
+                if(jenkinsParam.name == extraParam.name) {
+                    jenkinsParam = extraParam
+                    newExtraParameteres.remove(extraParam)
+                }
+            }
+            extraParameters = newExtraParameteres
+            newParams.add(jenkinsParam)
+        }
+        this.job.transientActions[1].parameterDefinitions.clear()
+        this.job.transientActions[1].parameterDefinitions.addAll(newParams)
+        this.job.transientActions[1].parameterDefinitions.addAll(newExtraParameteres)
+
         actions << new DefaultParametersAction(this.job)
         actions << new JiraProjectEnvironmentContributingAction(project)
         actions << new CauseAction(getCause(project))
@@ -93,9 +113,11 @@ abstract class JiraTrigger<T> extends Trigger<Job> {
         super.job
     }
 
+    abstract List<ParameterDefinition> getExtraParameters(Project project, T t)
+
     abstract boolean filter(Issue issue, T t)
 
-    abstract boolean filter(Project project)
+    abstract boolean filter(Project project, T t)
 
     private String getId(T t) {
         t instanceof AddressableEntity ? (t as AddressableEntity).self : t.toString()

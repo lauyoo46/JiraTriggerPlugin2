@@ -12,9 +12,7 @@ import com.ceilfors.jenkins.plugins.jiratrigger.webhook.WebhookReleaseEvent
 import com.google.inject.Singleton
 import groovy.util.logging.Log
 import hudson.model.AbstractProject
-import hudson.model.Job
 import jenkins.model.Jenkins
-import jenkins.model.ParameterizedJobMixIn
 import javax.inject.Inject
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -58,8 +56,7 @@ class JiraTriggerExecutor implements JiraWebhookListener {
 
     @Override
     void releaseCreated(WebhookReleaseEvent releaseEvent) {
-        scheduleBuilds(releaseEvent.project)
-        //todo: do we need fireListeners?
+        scheduleBuilds(releaseEvent.project, releaseEvent.version)
     }
 
     private void fireListeners(List<AbstractProject> scheduledProjects, Issue issue) {
@@ -78,16 +75,16 @@ class JiraTriggerExecutor implements JiraWebhookListener {
         scheduleBuildsInternal(JiraChangelogTrigger, issue, changelogGroup)
     }
 
-    List<AbstractProject> scheduleBuilds(Project project) {
-        scheduleBuildsInternalProject(JiraReleaseTrigger, project)
+    List<AbstractProject> scheduleBuilds(Project project, Version version) {
+        scheduleBuildsInternalProject(JiraReleaseTrigger, project, version)
     }
 
     List<AbstractProject> scheduleBuildsInternalProject(
-            Class<? extends JiraTrigger> triggerClass, Project project) {
+            Class<? extends JiraTrigger> triggerClass, Project project, Object jiraObject) {
         List<AbstractProject> scheduledProjects = []
         List<? extends JiraTrigger> triggers = getTriggers(triggerClass)
         for(trigger in triggers) {
-            boolean scheduled = trigger.run(project)
+            boolean scheduled = trigger.run(project, jiraObject)
             if(scheduled) {
                 scheduledProjects << trigger.job
             }
