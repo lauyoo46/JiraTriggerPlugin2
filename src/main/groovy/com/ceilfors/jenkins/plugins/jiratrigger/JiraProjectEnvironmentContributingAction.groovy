@@ -17,17 +17,28 @@ class JiraProjectEnvironmentContributingAction implements EnvironmentContributin
     }
 
     @Override
+    @Deprecated
+    void buildEnvVars(AbstractBuild<?, ?> build, EnvVars env) {
+        buildEnvironment(build, env)
+    }
+
+    @Override
+    void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars env) {
+        env.put('JIRA_PROJECT_KEY', projectKey)
+    }
+
+    @Override
     String getIconFileName() {
-       return null
+        null
     }
 
     @Override
     String getDisplayName() {
-        return null
+        null
     }
 
     @Override
     String getUrlName() {
-        return null
+        null
     }
 }

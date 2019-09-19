@@ -4,24 +4,22 @@ import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.domain.Version
 import com.ceilfors.jenkins.plugins.jiratrigger.JiraTriggerException
 
-/**
- * @author ceilfors
- */
-class IssueAttributePathParameterResolver implements ParameterResolver {
+class ProjectVersionParameterResolver implements ParameterResolver {
 
-    IssueAttributePathParameterMapping issueAttributePathParameterMapping
+    ProjectVersionParameterMapping projectVersionParameterMapping
 
-    IssueAttributePathParameterResolver(IssueAttributePathParameterMapping issueAttributePathParameterMapping) {
-        this.issueAttributePathParameterMapping = issueAttributePathParameterMapping
+    ProjectVersionParameterResolver(ProjectVersionParameterMapping projectVersionParameterMapping) {
+        this.projectVersionParameterMapping = projectVersionParameterMapping
     }
 
+    @Override
     String resolve(Issue issue) {
-        resolveProperty(issue.properties, issueAttributePathParameterMapping.issueAttributePath)
+        return null
     }
 
     @Override
     String resolve(Version version) {
-        return null
+        resolveProperty(version.properties, projectVersionParameterMapping.releaseVersion)
     }
 
     /**
@@ -42,4 +40,5 @@ class IssueAttributePathParameterResolver implements ParameterResolver {
             throw new JiraTriggerException(ParameterErrorCode.FAILED_TO_RESOLVE, e)
         }
     }
+
 }

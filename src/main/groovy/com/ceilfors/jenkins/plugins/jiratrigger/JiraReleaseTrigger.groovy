@@ -1,17 +1,15 @@
 package com.ceilfors.jenkins.plugins.jiratrigger
 
-import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.domain.Project
 import com.atlassian.jira.rest.client.api.domain.Version
+import com.ceilfors.jenkins.plugins.jiratrigger.parameter.ProjectVersionParameterMapping
 import groovy.util.logging.Log
 import hudson.Extension
 import hudson.model.Cause
-import hudson.model.ParameterDefinition
-import hudson.model.StringParameterDefinition
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 @Log
-class JiraReleaseTrigger extends JiraTrigger<Version> {
+class JiraReleaseTrigger extends JiraProjectTrigger<Version> {
 
     public static final String DEFAULT_PROJECT_KEY = 'Project Key'
 
@@ -24,10 +22,6 @@ class JiraReleaseTrigger extends JiraTrigger<Version> {
     }
 
     @Override
-    boolean filter(Issue issue, Version version) {
-    }
-
-    @Override
     boolean filter(Project project, Version version) {
         if(project.key == projectKey) {
             return true
@@ -36,7 +30,8 @@ class JiraReleaseTrigger extends JiraTrigger<Version> {
     }
 
     @Override
-    Cause getCause(Issue issue, Version version) {
+    boolean run(Project project, Version version) {
+        super.run(project, version)
     }
 
     @Override
@@ -45,10 +40,8 @@ class JiraReleaseTrigger extends JiraTrigger<Version> {
     }
 
     @Override
-    List<ParameterDefinition> getExtraParameters(Project project, Version version) {
-        return [
-            new StringParameterDefinition('JIRA_VERSION_NAME', version.name)
-        ]
+    ProjectVersionParameterMapping getProjectVersion(Project project, Version version) {
+        return new ProjectVersionParameterMapping('JIRA_VERSION_NAME', 'name')
     }
 
     @SuppressWarnings('UnnecessaryQualifiedReference')

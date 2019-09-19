@@ -2,12 +2,10 @@ package com.ceilfors.jenkins.plugins.jiratrigger
 
 import com.atlassian.jira.rest.client.api.domain.ChangelogGroup
 import com.atlassian.jira.rest.client.api.domain.Issue
-import com.atlassian.jira.rest.client.api.domain.Project
 import com.ceilfors.jenkins.plugins.jiratrigger.changelog.ChangelogMatcher
 import groovy.util.logging.Log
 import hudson.Extension
 import hudson.model.Cause
-import hudson.model.ParameterDefinition
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
@@ -17,7 +15,7 @@ import org.kohsuke.stapler.DataBoundSetter
  * @author ceilfors
  */
 @Log
-class JiraChangelogTrigger extends JiraTrigger<ChangelogGroup> {
+class JiraChangelogTrigger extends JiraIssueTrigger<ChangelogGroup> {
 
     @DataBoundSetter
     List<ChangelogMatcher> changelogMatchers = []
@@ -25,11 +23,6 @@ class JiraChangelogTrigger extends JiraTrigger<ChangelogGroup> {
     @SuppressWarnings('UnnecessaryConstructor')
     @DataBoundConstructor
     JiraChangelogTrigger() {
-    }
-
-    @Override
-    List<ParameterDefinition> getExtraParameters(Project project, ChangelogGroup changelogGroup) {
-        return null
     }
 
     @Override
@@ -45,18 +38,13 @@ class JiraChangelogTrigger extends JiraTrigger<ChangelogGroup> {
     }
 
     @Override
-    boolean filter(Project project, ChangelogGroup changelogGroup) {
-        return false
+    boolean run(Issue issue, ChangelogGroup changelogGroup) {
+        super.run(issue, changelogGroup)
     }
 
     @Override
     Cause getCause(Issue issue, ChangelogGroup changelogGroup) {
         new JiraChangelogTriggerCause()
-    }
-
-    @Override
-    Cause getCause(Project project) {
-        return null
     }
 
     @SuppressWarnings('UnnecessaryQualifiedReference')

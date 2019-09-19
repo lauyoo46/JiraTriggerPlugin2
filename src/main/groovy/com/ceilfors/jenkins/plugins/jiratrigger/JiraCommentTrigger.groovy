@@ -2,12 +2,9 @@ package com.ceilfors.jenkins.plugins.jiratrigger
 
 import com.atlassian.jira.rest.client.api.domain.Comment
 import com.atlassian.jira.rest.client.api.domain.Issue
-import com.atlassian.jira.rest.client.api.domain.Project
 import groovy.util.logging.Log
 import hudson.Extension
 import hudson.model.Cause
-import hudson.model.ParameterDefinition
-import hudson.model.ParameterValue
 import org.kohsuke.stapler.DataBoundConstructor
 import org.kohsuke.stapler.DataBoundSetter
 
@@ -17,7 +14,7 @@ import org.kohsuke.stapler.DataBoundSetter
  * @author ceilfors
  */
 @Log
-class JiraCommentTrigger extends JiraTrigger<Comment> {
+class JiraCommentTrigger extends JiraIssueTrigger<Comment> {
 
     public static final String DEFAULT_COMMENT = 'build this please'
 
@@ -27,11 +24,6 @@ class JiraCommentTrigger extends JiraTrigger<Comment> {
     @SuppressWarnings('UnnecessaryConstructor')
     @DataBoundConstructor
     JiraCommentTrigger() {
-    }
-
-    @Override
-    List<ParameterDefinition> getExtraParameters(Project project, Comment comment) {
-        return null
     }
 
     @Override
@@ -48,18 +40,13 @@ class JiraCommentTrigger extends JiraTrigger<Comment> {
     }
 
     @Override
-    boolean filter(Project project, Comment comment) {
-        return false
+    boolean run(Issue issue, Comment comment) {
+        super.run(issue, comment)
     }
 
     @Override
     Cause getCause(Issue issue, Comment comment) {
         new JiraCommentTriggerCause()
-    }
-
-    @Override
-    Cause getCause(Project project) {
-        return null
     }
 
     @SuppressWarnings('UnnecessaryQualifiedReference')

@@ -2,6 +2,7 @@ package com.ceilfors.jenkins.plugins.jiratrigger.parameter
 
 import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.domain.IssueField
+import com.atlassian.jira.rest.client.api.domain.Version
 import com.ceilfors.jenkins.plugins.jiratrigger.JiraTriggerException
 import org.codehaus.jettison.json.JSONArray
 import org.codehaus.jettison.json.JSONObject
@@ -27,6 +28,11 @@ class CustomFieldParameterResolver implements ParameterResolver {
             throw new JiraTriggerException(ParameterErrorCode.FAILED_TO_RESOLVE)
                 .add('customFieldId', customFieldId)
         }
+    }
+
+    @Override
+    String resolve(Version version) {
+        return null
     }
 
     private static String extractValue(IssueField field) {
